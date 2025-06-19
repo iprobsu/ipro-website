@@ -23,14 +23,12 @@
       padding: 2rem 1rem;
       animation: fadeIn 1s ease-in;
     }
-    header img {
+    header img.glow-logo {
       width: 80px;
       height: auto;
       animation: bounce 2s infinite;
-      transition: filter 0.3s;
-    }
-    .dark-mode header img {
-      filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.8));
+      transition: filter 0.3s ease-in-out;
+      filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.85));
     }
     h1 {
       font-size: 2rem;
@@ -88,7 +86,7 @@
   <button class="toggle-dark-mode" onclick="toggleDarkMode()">🌙 Toggle Dark Mode</button>
 
   <header>
-    <img src="ipro-logo.png" alt="IPRO Logo" loading="lazy" />
+    <img src="ipro-logo.png" alt="IPRO Logo" loading="lazy" class="glow-logo" />
     <h1>IPRO Masterlist Dashboard</h1>
   </header>
 
