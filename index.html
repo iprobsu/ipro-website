@@ -2,70 +2,107 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>📊 IPRO Masterlist Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IPRO Masterlist Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
   <style>
     body {
+      font-family: 'Roboto', sans-serif;
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f7f9fb;
-      text-align: center;
+      padding: 0;
+      background-color: #f0f2f5;
+      color: #222;
+      transition: background-color 0.3s, color 0.3s;
     }
-
+    .dark-mode {
+      background-color: #1e1e1e;
+      color: #f9f9f9;
+    }
     header {
-      background-color: #003049;
-      color: white;
-      padding: 1.5rem;
+      text-align: center;
+      padding: 2rem 1rem;
+      animation: fadeIn 1s ease-in;
     }
-
     header img {
-      height: 60px;
-      display: block;
-      margin: 0 auto 1rem;
+      width: 80px;
+      height: auto;
+      animation: bounce 2s infinite;
     }
-
-    header h1 {
+    h1 {
       font-size: 2rem;
-      margin: 0;
+      margin-top: 0.5rem;
     }
-
-    button {
-      background-color: #2a9d8f;
+    .button-container {
+      text-align: center;
+      margin: 2rem;
+    }
+    .dashboard-button {
+      background-color: #008CBA;
       color: white;
-      border: none;
       padding: 1rem 2rem;
+      text-decoration: none;
       font-size: 1.2rem;
-      margin-top: 2rem;
-      border-radius: 8px;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+    .dashboard-button:hover {
+      background-color: #005f7a;
+    }
+    .toggle-dark-mode {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
       cursor: pointer;
+      background: #333;
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 5px;
+    }
+    .download-links {
+      text-align: center;
+      margin-top: 1rem;
+    }
+    .download-links a {
+      display: inline-block;
+      margin: 0.5rem;
+      color: #008CBA;
+      text-decoration: underline;
     }
 
-    button:hover {
-      background-color: #21867a;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    footer {
-      margin-top: 4rem;
-      padding: 1rem;
-      background-color: #003049;
-      color: white;
-      font-size: 0.9rem;
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
     }
   </style>
 </head>
 <body>
+  <button class="toggle-dark-mode" onclick="toggleDarkMode()">🌙 Toggle Dark Mode</button>
+
   <header>
-    <img src="ipro-logo.png" alt="IPRO Logo">
-    <h1>📊 IPRO Masterlist Dashboard</h1>
-    <p>Search, filter, and explore IP records from 2006–2025</p>
+    <img src="ipro-logo.png" alt="IPRO Logo" />
+    <h1>IPRO Masterlist Dashboard</h1>
   </header>
 
-  <a href="https://iprobsu-ipro.streamlit.app" target="_blank">
-    <button>🚀 Launch the Dashboard</button>
-  </a>
+  <div class="button-container">
+    <a class="dashboard-button" href="https://iprobsu-ip-dashboard.streamlit.app/" target="_blank">Open Dashboard</a>
+  </div>
 
-  <footer>
-    &copy; 2025 Intellectual Property Office. Built by Krisha C. Ticwala.
-  </footer>
+  <div class="download-links">
+    <p>📁 Download Sample Reports:</p>
+    <a href="/downloads/2025_sample.csv" download>2025 Report</a>
+    <a href="/downloads/full_masterlist.csv" download>Full Masterlist</a>
+  </div>
+
+  <script>
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+    }
+  </script>
 </body>
 </html>
