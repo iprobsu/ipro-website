@@ -77,6 +77,28 @@
       color: #008CBA;
       text-decoration: underline;
     }
+    .login-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .login-container input {
+      padding: 0.5rem;
+      margin: 0.5rem;
+      font-size: 1rem;
+    }
+    .login-container button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      background-color: #008CBA;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .hidden { display: none; }
 
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(-20px); }
@@ -97,11 +119,18 @@
     <h1>IPRO Masterlist Dashboard</h1>
   </header>
 
-  <div class="iframe-container">
+  <div class="login-container" id="login-container">
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="login()">Login</button>
+    <p id="login-error" style="color: red;"></p>
+  </div>
+
+  <div class="iframe-container hidden" id="dashboard">
     <p><a href="https://8qcrljaboappksycpyrzzcu.streamlit.app" target="_blank" class="launch-link">🚀 Launch Dashboard</a></p>
   </div>
 
-  <div class="download-links">
+  <div class="download-links hidden" id="downloads">
     <p>📁 Download Sample Reports:</p>
     <a href="/downloads/2025_sample.csv" download>2025 Report</a>
     <a href="/downloads/full_masterlist.csv" download>Full Masterlist</a>
@@ -113,9 +142,29 @@
       localStorage.setItem('dark-mode', isDark);
     }
 
-    // Apply stored dark mode preference
     if (localStorage.getItem('dark-mode') === 'true') {
       document.body.classList.add('dark-mode');
+    }
+
+    function login() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const errorMsg = document.getElementById("login-error");
+
+      // Hardcoded credentials — add new users here
+      const credentials = {
+        "admin": "ipro2025",
+        "moderator": "assist2025"
+      };
+
+      if (credentials[username] && credentials[username] === password) {
+        document.getElementById("login-container").classList.add("hidden");
+        document.getElementById("dashboard").classList.remove("hidden");
+        document.getElementById("downloads").classList.remove("hidden");
+        errorMsg.textContent = "";
+      } else {
+        errorMsg.textContent = "Invalid username or password.";
+      }
     }
   </script>
 </body>
