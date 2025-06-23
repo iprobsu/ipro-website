@@ -1,6 +1,9 @@
 import streamlit as st
 import pandas as pd
 import os
+import io
+from openpyxl import Workbook
+from openpyxl.styles import PatternFill
 
 # --- Page Setup ---
 st.set_page_config(page_title="IP Masterlist Dashboard", layout="wide")
@@ -10,6 +13,8 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "role" not in st.session_state:
     st.session_state.role = None
+if "edit_mode" not in st.session_state:
+    st.session_state.edit_mode = False
 
 # --- Login Page ---
 if not st.session_state.logged_in:
@@ -29,7 +34,7 @@ if not st.session_state.logged_in:
             }
         </style>
         <div class="login-box">
-            <h2>🔐 IPRO Dashboard Login</h2>
+            <h2>\U0001f510 IPRO Dashboard Login</h2>
         </div>
     """, unsafe_allow_html=True)
 
@@ -48,14 +53,14 @@ if not st.session_state.logged_in:
                 st.session_state.role = "Moderator"
                 st.rerun()
             else:
-                st.error("❌ Invalid username or password")
+                st.error("\u274c Invalid username or password")
     st.stop()
 
 # --- Sidebar ---
-st.sidebar.markdown(f"**🔒 Current Role:** {st.session_state.role}")
-dark_mode = st.sidebar.toggle("🌗 Enable Dark Mode", value=False)
+st.sidebar.markdown(f"**\U0001f512 Current Role:** {st.session_state.role}")
+dark_mode = st.sidebar.toggle("\U0001f319 Enable Dark Mode", value=False)
 
-# --- Apply Dark Mode Styling ---
+# --- Dark Mode ---
 if dark_mode:
     st.markdown("""
         <style>
@@ -71,7 +76,7 @@ if dark_mode:
 st.markdown("""
     <div style="text-align: center;">
         <img src="https://raw.githubusercontent.com/iprobsu/IPRO/main/ipro_logo.png" alt="IPRO Logo" width="80" style="filter: drop-shadow(0 0 10px #00ffaa); animation: bounce 2s infinite;" />
-        <h1>📚 IP Masterlist Dashboard</h1>
+        <h1>\U0001f4da IP Masterlist Dashboard</h1>
     </div>
     <style>
         @keyframes bounce {
@@ -107,17 +112,8 @@ def load_data():
 
 df = load_data()
 
-# --- Admin: Upload new data ---
-if st.session_state.role == "Admin":
-    st.sidebar.markdown("### 📤 Upload New Excel File")
-    uploaded_file = st.sidebar.file_uploader("Upload Excel", type=["xlsx"])
-    if uploaded_file:
-        with open(os.path.join("data", uploaded_file.name), "wb") as f:
-            f.write(uploaded_file.getbuffer())
-        st.success(f"✅ {uploaded_file.name} uploaded. Reload to see updates.")
-
 # --- Filters ---
-st.markdown("### 🔍 Search Intellectual Property Records")
+st.markdown("### \U0001f50d Search Intellectual Property Records")
 col1, col2, col3 = st.columns([3, 2, 2])
 with col1:
     search_term = st.text_input("Search by Author or Title")
@@ -126,8 +122,7 @@ with col2:
 with col3:
     year = st.selectbox("Sort by Year", ["All"] + sorted(df['Year'].unique()))
 
-# --- Advanced Filters ---
-with st.expander("📂 Advanced Filters"):
+with st.expander("\U0001f5c2 Advanced Filters"):
     col4, col5, col6 = st.columns(3)
     with col4:
         college = st.selectbox("Filter by College", ["All"] + sorted(df['College'].unique()) if 'College' in df else ["All"])
@@ -158,8 +153,12 @@ if date_range:
         start, end = pd.to_datetime(date_range[0]), pd.to_datetime(date_range[1])
         filtered_df = filtered_df[filtered_df['Date Applied'].between(start, end)]
 
-# --- Row Color Customization ---
-show_colors = st.sidebar.toggle("🎨 Customize Row Colors", value=False)
+# --- Display Table & Edit Mode ---
+st.markdown(f"### \U0001f4c4 Showing {len(filtered_df)} result{'s' if len(filtered_df) != 1 else ''}")
+st.session_state.edit_mode = st.toggle("✏️ Enable Edit Mode", value=st.session_state.edit_mode)
+
+# --- Row Coloring Setup ---
+show_colors = st.sidebar.toggle("\U0001f3a8 Customize Row Colors", value=False)
 ip_color_map = {}
 enable_coloring = False
 
@@ -174,15 +173,31 @@ if show_colors:
             with col2:
                 st.sidebar.markdown(f"<div style='margin-top: 8px'>{ip}</div>", unsafe_allow_html=True)
 
-# --- Display Results ---
-if filtered_df.empty:
-    st.warning("😕 No records matched your filters or search term.")
+if st.session_state.edit_mode:
+    st.markdown("### \U0001f527 Editable Table")
+    editable_df = st.data_editor(filtered_df, num_rows="dynamic", use_container_width=True, height=500)
+    st.info("⚠️ Edits are currently in-memory only. Saving not yet implemented.")
+
+    st.markdown("---")
+    st.markdown("### ➕ Add New Record")
+    ip_options = sorted(df['IP Type'].dropna().unique())
+    selected_type = st.selectbox("Select IP Type", ip_options, key="new_ip_type")
+    example_subset = df[df["IP Type"] == selected_type]
+    if not example_subset.empty:
+        st.markdown(f"#### Fields for IP Type: **{selected_type}**")
+        with st.form("add_entry_form"):
+            new_data = {}
+            for col in example_subset.columns:
+                if col in ['Date Applied', 'Date Approved']:
+                    new_data[col] = st.date_input(col)
+                elif col == 'Year':
+                    new_data[col] = st.text_input(col, value=pd.Timestamp.now().year)
+                else:
+                    new_data[col] = st.text_input(col)
+            if st.form_submit_button("✅ Add Entry"):
+                st.success("✅ Entry added (in memory). Saving to file not yet implemented.")
 else:
     display_df = filtered_df.dropna(axis=1, how='all')
-    display_df = display_df.loc[:, ~(display_df == '').all()]
-
-    st.markdown(f"### 📄 Showing {len(display_df)} result{'s' if len(display_df) != 1 else ''}")
-
     if enable_coloring and ip_color_map:
         def apply_color(row):
             bg = ip_color_map.get(row['IP Type'], '#ffffff')
@@ -194,6 +209,38 @@ else:
     else:
         st.dataframe(display_df, use_container_width=True, height=600)
 
-    if st.session_state.role in ["Moderator", "Admin"]:
-        csv = display_df.to_csv(index=False).encode("utf-8")
-        st.download_button("⬇️ Download Filtered Results", data=csv, file_name="filtered_ip_data.csv", mime="text/csv")
+# --- Export Section ---
+if st.session_state.role in ["Moderator", "Admin"]:
+    st.markdown("### ⬇️ Export Options")
+    ip_options = sorted(filtered_df["IP Type"].dropna().unique())
+    selected_types = st.multiselect("\U0001f4d1 Select IP Types to include in download", ip_options, default=ip_options)
+    export_df = filtered_df[filtered_df["IP Type"].isin(selected_types)]
+
+    if export_df.empty:
+        st.warning("⚠️ No data to export with the selected IP Types.")
+    else:
+        output = io.BytesIO()
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Filtered IP Records"
+        ws.append(list(export_df.columns))
+
+        for idx, row in export_df.iterrows():
+            values = list(row.values)
+            ws.append(values)
+            if enable_coloring:
+                ip = row.get("IP Type", "")
+                hex_color = ip_color_map.get(ip, "#FFFFFF").replace("#", "")
+                fill = PatternFill(start_color=hex_color, end_color=hex_color, fill_type="solid")
+                for col in range(1, len(values)+1):
+                    ws.cell(row=idx+2, column=col).fill = fill
+
+        wb.save(output)
+        output.seek(0)
+
+        st.download_button(
+            label="⬇️ Download as Excel (With Colors)" if enable_coloring else "⬇️ Download as Excel",
+            data=output,
+            file_name="filtered_ip_data.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
